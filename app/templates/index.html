@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Snippet Guessing Game</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Spotify Snippet Guessing Game</h1>
+        <p>Search for an artist to start the game!</p>
+    </header>
+    <main>
+        <!-- search bar -->
+        <main>
+            <input type="text" id="artist-name" placeholder="Enter an artist's name..." autocomplete="off">
+            <div id="autocomplete-results"></div>
+            <div id="game"></div> <!-- Game div -->
+        </main>
+        <!-- Autocomplete Results -->
+        <div id="autocomplete-results"></div>
+    </main>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
