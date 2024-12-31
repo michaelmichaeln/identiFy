@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, jsonify
-from spotifyapi import search_artists
-
+from spotifyapi import search_artists, get_artist_top_tracks
+import random
 app = Flask(__name__)
 
 @app.route('/')
@@ -25,6 +25,7 @@ def top_tracks(artist_id):
         }
         for track in tracks if track["preview_url"]  # Only include tracks with a preview
     ]
+    random.shuffle(results)
     return jsonify(results)
     
 

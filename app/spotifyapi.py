@@ -61,3 +61,20 @@ def search_artists(query, limit=10, min_popularity=50, country="US"):
 def get_artist_top_tracks(artist_id, country="US"):
     results = spotify.artist_top_tracks(artist_id, country=country)
     return results["tracks"]
+
+def search_top_tracks(artist_id, country="US"):
+    try:
+        results = spotify.artist_top_tracks(artist_id, country=country)
+        return [
+            {
+                "name": track["name"],
+                "preview_url": track["preview_url"],
+                "album": track["album"]["name"],
+                "image": track["album"]["images"][0]["url"] if track["album"]["images"] else None
+            }
+            for track in results["tracks"] if track["preview_url"]
+        ]
+    except Exception as e:
+        print(f"Error fetching top tracks: {e}")
+        return []
+

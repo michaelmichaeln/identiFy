@@ -1,7 +1,6 @@
 const searchInput = document.getElementById('artist-name');
 const resultsDiv = document.getElementById('autocomplete-results');
-const gameDiv = document.getElementById('game'); // Add a div for the game
-let selectedArtist = null;
+const gameDiv = document.getElementById('game'); // Game container
 
 // Function to display search results dynamically
 const displayResults = (results) => {
@@ -16,12 +15,11 @@ const displayResults = (results) => {
         resultItem.className = 'result-item';
         resultItem.textContent = artist.name;
 
-        // Click behavior to select an artist and fetch top tracks
+        // Click behavior to select an artist and start the game
         resultItem.addEventListener('click', async () => {
-            selectedArtist = artist; // Save the selected artist
             resultsDiv.style.display = 'none';
-            searchInput.value = artist.name; // Autofill the search bar
-            await fetchTopTracks(artist.id); // Fetch the artist's top tracks
+            searchInput.value = artist.name; // Autofill search bar
+            await startGame(artist.id); // Start the game with the selected artist
         });
 
         resultsDiv.appendChild(resultItem);
@@ -30,54 +28,79 @@ const displayResults = (results) => {
     resultsDiv.style.display = 'block';
 };
 
-// Fetch the top tracks for the selected artist
-const fetchTopTracks = async (artistId) => {
+// Start the game with the artist's top tracks
+const startGame = async (artistId) => {
     try {
         const response = await fetch(`/artist/${artistId}/top-tracks`);
         const tracks = await response.json();
-        startGame(tracks); // Start the game with the fetched tracks
+
+        if (tracks.length === 0) {
+            gameDiv.innerHTML = '<p>No tracks available for this artist.</p>';
+            return;
+        }
+ 
+        playGame(tracks);
     } catch (error) {
-        console.error('Error fetching top tracks:', error);
+        console.error('Error fetching tracks:', error);
+        gameDiv.innerHTML = '<p>Error loading the game. Please try again.</p>';
     }
 };
 
-// Start the game with the artist's top tracks
-const startGame = (tracks) => {
-    gameDiv.innerHTML = ''; // Clear previous game state
-
-    if (tracks.length === 0) {
-        gameDiv.innerHTML = '<p>No tracks available for this artist.</p>';
-        return;
-    }
-
-    // Display the first track snippet and options
+// Game logic
+const playGame = (tracks) => {
     let currentTrackIndex = 0;
+    let score = 0;
+
+    // Function to play a track snippet
     const playTrack = (track) => {
         gameDiv.innerHTML = `
-            <p>Guess the song:</p>
+            <p>Guess the song title:</p>
             <audio controls autoplay>
                 <source src="${track.preview_url}" type="audio/mpeg">
                 Your browser does not support the audio element.
             </audio>
-            <button onclick="revealAnswer()">Reveal Answer</button>
+            <input type="text" id="guess-input" placeholder="Enter your guess..." />
+            <button id="submit-guess">Submit Guess</button>
         `;
+
+        // Add event listener for the submit button
+        document.getElementById('submit-guess').addEventListener('click', () => {
+            const userGuess = document.getElementById('guess-input').value.trim().toLowerCase();
+            if (userGuess === track.name.toLowerCase()) {
+                score++;
+                alert('Correct!');
+            } else {
+                alert(`Wrong! The correct answer was: ${track.name}`);
+            }
+
+            // Move to the next track or end the game
+            currentTrackIndex++;
+            if (currentTrackIndex < tracks.length) {
+                playTrack(tracks[currentTrackIndex]);
+            } else {
+                endGame(score, tracks.length);
+            }
+        });
     };
 
+    // Start with the first track
     playTrack(tracks[currentTrackIndex]);
-
-    // Reveal the answer and move to the next track
-    window.revealAnswer = () => {
-        alert(`The song was: ${tracks[currentTrackIndex].name}`);
-        currentTrackIndex++;
-        if (currentTrackIndex < tracks.length) {
-            playTrack(tracks[currentTrackIndex]);
-        } else {
-            gameDiv.innerHTML = '<p>Game over! You’ve guessed all the tracks.</p>';
-        }
-    };
 };
 
-// Listen for Search Input
+// End the game
+const endGame = (score, total) => {
+    gameDiv.innerHTML = `
+        <p>Game Over! You scored ${score} out of ${total}.</p>
+        <button id="restart-game">Play Again</button>
+    `;
+
+    // Restart the game
+    document.getElementById('restart-game').addEventListener('click', () => {
+        gameDiv.innerHTML = '';
+    });
+};
+
+// Listen for search input
 searchInput.addEventListener('input', async () => {
     const query = searchInput.value.trim();
 
